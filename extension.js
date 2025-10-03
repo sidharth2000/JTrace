@@ -1,36 +1,53 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs');
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+class JTraceViewProvider {
+  constructor(extensionUri) {
+    this.extensionUri = extensionUri;
+  }
 
-/**
- * @param {vscode.ExtensionContext} context
- */
-function activate(context) {
+  resolveWebviewView(webviewView) {
+    const webview = webviewView.webview;
+    webview.options = {
+      enableScripts: true,
+      localResourceRoots: [
+        vscode.Uri.joinPath(this.extensionUri, 'out'),
+      ],
+    };
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "JTrace" is now active!');
+    webviewView.webview.html = this.getWebviewContent(webview);
+  }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('JTrace.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+  getWebviewContent(webview) {
+    // Path to your bundled HTML
+    const htmlPath = path.join(this.extensionUri.fsPath, 'src', 'index.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from JTrace!');
-	});
+    // Get URI to the bundled JS (React build)
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.extensionUri, 'out', 'views', 'index.js')
+    );
 
-	context.subscriptions.push(disposable);
+    // Replace placeholders in HTML
+    html = html
+      .replace(/\$\{scriptUri\}/g, scriptUri.toString())
+      .replace(/\$\{webview.cspSource\}/g, webview.cspSource);
+
+    return html;
+  }
 }
 
-// This method is called when your extension is deactivated
+function activate(context) {
+  console.log('Activating JTrace extension...');
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      'jtraceView',
+      new JTraceViewProvider(context.extensionUri)
+    )
+  );
+}
+
 function deactivate() {}
 
-module.exports = {
-	activate,
-	deactivate
-}
+module.exports = { activate, deactivate };

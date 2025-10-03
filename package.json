@@ -12,22 +12,44 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "JTrace.helloWorld",
-      "title": "Hello World"
-    }]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jtraceContainer",
+          "title": "JTrace",
+          "icon": "assets/jtrace-extension-icon.png"
+        }
+      ]
+    },
+    "views": {
+      "jtraceContainer": [
+        {
+          "id": "jtraceView",
+          "name": "Call Graph",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": []
   },
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "build": "node esbuild.config.js",
+    "build:prod": "node esbuild.config.js --production"
   },
   "devDependencies": {
-    "@types/vscode": "^1.104.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "eslint": "^9.34.0",
+    "@types/vscode": "^1.104.0",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.10",
+    "eslint": "^9.34.0"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   }
 }
